@@ -75,16 +75,19 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Move _ ->
-            if Set.isEmpty model.cells then
+            let
+                surroundCells =
+                    Set.Extra.concatMap createSurround model.cells
+
+                nextCells =
+                    Set.filter (isNextGen model.cells) surroundCells
+            in
+            if model.cells == nextCells then
                 update Stop model
 
             else
-                let
-                    surroundCells =
-                        Set.Extra.concatMap createSurround model.cells
-                in
                 ( { model
-                    | cells = Set.filter (isNextGen model.cells) surroundCells
+                    | cells = nextCells
                     , countGen = model.countGen + 1
                   }
                 , Cmd.none
