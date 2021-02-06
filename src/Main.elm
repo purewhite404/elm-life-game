@@ -254,6 +254,7 @@ view model =
                 ]
             , Html.input
                 [ HA.type_ "number"
+                , HA.size 1
                 , HA.value <| String.fromFloat model.invFrameSpeed
                 , HE.onInput ChangeFrameSpeed
                 ]
