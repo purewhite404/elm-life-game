@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Html exposing (Html)
+import Html.Attributes as HA
 import Html.Events as HE
 import Html.Events.Extra.Mouse as Mouse
 import List.Extra
@@ -33,6 +34,7 @@ type alias Model =
     , start : Bool
     , position : { x : Int, y : Int }
     , countGen : Int
+    , invFrameSpeed : Float
     }
 
 
@@ -43,6 +45,7 @@ init _ =
       , start = False
       , position = { x = 0, y = 0 }
       , countGen = 0
+      , invFrameSpeed = 100
       }
     , Cmd.none
     )
@@ -56,12 +59,13 @@ type Msg
     | Clear
     | Add ( Float, Float )
     | ReadSample (Set Cell)
+    | ChangeFrameSpeed String
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     if model.start then
-        Time.every 50 Move
+        Time.every model.invFrameSpeed Move
 
     else
         Sub.none
@@ -136,6 +140,11 @@ update msg model =
 
         ReadSample sample ->
             ( { model | cells = sample, initCells = sample }
+            , Cmd.none
+            )
+
+        ChangeFrameSpeed invS ->
+            ( { model | invFrameSpeed = Maybe.withDefault 100 <| String.toFloat invS }
             , Cmd.none
             )
 
@@ -243,6 +252,12 @@ view model =
                 , Html.option [ HE.onClick (ReadSample Sample.glider) ] [ Html.text "Glider" ]
                 , Html.option [ HE.onClick (ReadSample Sample.spaceships) ] [ Html.text "Spaceships" ]
                 ]
+            , Html.input
+                [ HA.type_ "number"
+                , HA.value <| String.fromFloat model.invFrameSpeed
+                , HE.onInput ChangeFrameSpeed
+                ]
+                []
             , Html.div [] [ Html.text <| "generation: " ++ String.fromInt model.countGen ]
             , Html.div [] [ Html.text <| SC.fromSet (SC.fromTuple2 String.fromInt String.fromInt) model.cells ]
             ]
