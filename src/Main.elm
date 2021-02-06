@@ -242,6 +242,7 @@ view model =
                 , Html.option [ HE.onClick (ReadSample Sample.galaxy) ] [ Html.text "Galaxy" ]
                 , Html.option [ HE.onClick (ReadSample Sample.glider) ] [ Html.text "Glider" ]
                 , Html.option [ HE.onClick (ReadSample Sample.spaceships) ] [ Html.text "Spaceships" ]
+                , Html.option [ HE.onClick (ReadSample Sample.makeSpaceship) ] [ Html.text "Make Spaceship" ]
                 ]
             , Html.div [] [ Html.text <| "generation: " ++ String.fromInt model.countGen ]
             , Html.div [] [ Html.text <| SC.fromSet (SC.fromTuple2 String.fromInt String.fromInt) model.cells ]
