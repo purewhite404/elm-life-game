@@ -126,6 +126,7 @@ update msg model =
                     newCell =
                         div10 pos
                 in
+                -- クリックしたセルがすでに埋められている場合セルを削除
                 if Set.member newCell model.cells then
                     ( { model
                         | cells = Set.remove newCell model.cells
@@ -229,16 +230,19 @@ view model =
     Html.div []
         [ Html.div [ Mouse.onClick (.clientPos >> Add) ]
             [ let
-                allCells =
-                    List.Extra.lift2 Tuple.pair (List.range 0 79) (List.range 0 79)
+                width =
+                    79
 
-                size =
-                    String.fromFloat <| sqrt (toFloat <| List.length allCells) * 10
+                height =
+                    79
+
+                allCells =
+                    List.Extra.lift2 Tuple.pair (List.range 0 width) (List.range 0 height)
               in
               svg
-                [ viewBox ("0 0 " ++ size ++ " " ++ size)
-                , SA.width size
-                , SA.height size
+                [ viewBox ("0 0 " ++ String.fromInt (width * 10) ++ " " ++ String.fromInt (height * 10))
+                , SA.width <| String.fromInt (width * 10)
+                , SA.height <| String.fromInt (height * 10)
                 ]
                 (List.map showGrid allCells ++ List.map showCell (Set.toList model.cells))
             ]
