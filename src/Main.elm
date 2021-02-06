@@ -4,8 +4,10 @@ import Browser
 import Html exposing (Html)
 import Html.Events as HE
 import Html.Events.Extra.Mouse as Mouse
-import List.Extra as LE
+import List.Extra
 import Sample
+import Set exposing (Set)
+import Set.Extra
 import String.Conversions as SC
 import Svg exposing (Svg, svg)
 import Svg.Attributes as SA exposing (viewBox)
@@ -26,8 +28,8 @@ type alias Cell =
 
 
 type alias Model =
-    { cells : List Cell
-    , initCells : List Cell
+    { cells : Set Cell
+    , initCells : Set Cell
     , start : Bool
     , position : { x : Int, y : Int }
     , countGen : Int
@@ -36,8 +38,8 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { cells = []
-      , initCells = []
+    ( { cells = Set.empty
+      , initCells = Set.empty
       , start = False
       , position = { x = 0, y = 0 }
       , countGen = 0
@@ -53,7 +55,7 @@ type Msg
     | Reset
     | Clear
     | Add ( Float, Float )
-    | ReadSample (List Cell)
+    | ReadSample (Set Cell)
 
 
 subscriptions : Model -> Sub Msg
@@ -65,29 +67,20 @@ subscriptions model =
         Sub.none
 
 
-allCells : List Cell
-allCells =
-    let
-        a =
-            List.range 0 79
-    in
-    LE.lift2 Tuple.pair a a
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Move _ ->
-            if model.cells == [] then
+            if Set.isEmpty model.cells then
                 update Stop model
 
             else
                 let
                     surroundCells =
-                        LE.unique <| List.concatMap createSurround model.cells
+                        Set.Extra.concatMap createSurround model.cells
                 in
                 ( { model
-                    | cells = List.filter (isNextGen model.cells) surroundCells
+                    | cells = Set.filter (isNextGen model.cells) surroundCells
                     , countGen = model.countGen + 1
                   }
                 , Cmd.none
@@ -109,7 +102,7 @@ update msg model =
             )
 
         Clear ->
-            ( { model | cells = [], initCells = [], start = False, countGen = 0 }
+            ( { model | cells = Set.empty, initCells = Set.empty, start = False, countGen = 0 }
             , Cmd.none
             )
 
@@ -125,18 +118,18 @@ update msg model =
                     newCell =
                         div10 pos
                 in
-                if List.member newCell model.cells then
+                if Set.member newCell model.cells then
                     ( { model
-                        | cells = LE.remove newCell model.cells
-                        , initCells = LE.remove newCell model.initCells
+                        | cells = Set.remove newCell model.cells
+                        , initCells = Set.remove newCell model.initCells
                       }
                     , Cmd.none
                     )
 
                 else
                     ( { model
-                        | cells = newCell :: model.cells
-                        , initCells = newCell :: model.initCells
+                        | cells = Set.insert newCell model.cells
+                        , initCells = Set.insert newCell model.initCells
                       }
                     , Cmd.none
                     )
@@ -147,7 +140,7 @@ update msg model =
             )
 
 
-createSurround : Cell -> List Cell
+createSurround : Cell -> Set Cell
 createSurround cell =
     let
         x =
@@ -156,18 +149,19 @@ createSurround cell =
         y =
             Tuple.second cell
     in
-    [ ( x - 1, y - 1 )
-    , ( x, y - 1 )
-    , ( x + 1, y - 1 )
-    , ( x - 1, y )
-    , ( x + 1, y )
-    , ( x - 1, y + 1 )
-    , ( x, y + 1 )
-    , ( x + 1, y + 1 )
-    ]
+    Set.fromList
+        [ ( x - 1, y - 1 )
+        , ( x, y - 1 )
+        , ( x + 1, y - 1 )
+        , ( x - 1, y )
+        , ( x + 1, y )
+        , ( x - 1, y + 1 )
+        , ( x, y + 1 )
+        , ( x + 1, y + 1 )
+        ]
 
 
-isNextGen : List Cell -> Cell -> Bool
+isNextGen : Set Cell -> Cell -> Bool
 isNextGen livingCells cell =
     let
         c =
@@ -175,7 +169,7 @@ isNextGen livingCells cell =
     in
     case c of
         2 ->
-            List.member cell livingCells
+            Set.member cell livingCells
 
         3 ->
             True
@@ -184,7 +178,7 @@ isNextGen livingCells cell =
             False
 
 
-countSurround : Cell -> List Cell -> Int
+countSurround : Cell -> Set Cell -> Int
 countSurround cell livingCells =
     let
         x =
@@ -193,7 +187,7 @@ countSurround cell livingCells =
         y =
             Tuple.second cell
     in
-    LE.count (\c -> List.member c livingCells) <|
+    List.Extra.count (\c -> Set.member c livingCells) <|
         [ ( x - 1, y - 1 )
         , ( x, y - 1 )
         , ( x + 1, y - 1 )
@@ -210,6 +204,9 @@ view model =
     Html.div []
         [ Html.div [ Mouse.onClick (.clientPos >> Add) ]
             [ let
+                allCells =
+                    List.Extra.lift2 Tuple.pair (List.range 0 79) (List.range 0 79)
+
                 size =
                     String.fromFloat <| sqrt (toFloat <| List.length allCells) * 10
               in
@@ -218,7 +215,7 @@ view model =
                 , SA.width size
                 , SA.height size
                 ]
-                (List.map showGrid allCells ++ List.map showCell model.cells)
+                (List.map showGrid allCells ++ List.map showCell (Set.toList model.cells))
             ]
         , Html.div []
             [ Html.button
@@ -240,13 +237,13 @@ view model =
             , Html.button [ HE.onClick Clear ] [ Html.text "Clear" ]
             , Html.button [ HE.onClick (Move (Time.millisToPosix 0)) ] [ Html.text "Move" ]
             , Html.select []
-                [ Html.option [ HE.onClick (ReadSample []) ] [ Html.text "Empty" ]
+                [ Html.option [ HE.onClick (ReadSample Set.empty) ] [ Html.text "Empty" ]
                 , Html.option [ HE.onClick (ReadSample Sample.gliderGun) ] [ Html.text "GliderGun" ]
                 , Html.option [ HE.onClick (ReadSample Sample.galaxy) ] [ Html.text "Galaxy" ]
                 , Html.option [ HE.onClick (ReadSample Sample.glider) ] [ Html.text "Glider" ]
                 ]
             , Html.div [] [ Html.text <| "generation: " ++ String.fromInt model.countGen ]
-            , Html.div [] [ Html.text <| SC.fromList (SC.fromTuple2 String.fromInt String.fromInt) model.cells ]
+            , Html.div [] [ Html.text <| SC.fromSet (SC.fromTuple2 String.fromInt String.fromInt) model.cells ]
             ]
         ]
 
