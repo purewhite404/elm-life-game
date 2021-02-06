@@ -109,7 +109,12 @@ update msg model =
             )
 
         Clear ->
-            ( { model | cells = Set.empty, initCells = Set.empty, start = False, countGen = 0 }
+            ( { model
+                | cells = Set.empty
+                , initCells = Set.empty
+                , start = False
+                , countGen = 0
+              }
             , Cmd.none
             )
 
