@@ -243,7 +243,7 @@ view model =
                         "Stop"
 
                     else
-                        "Start"
+                        "Run"
                 ]
             , Html.button [ HE.onClick Reset ] [ Html.text "Reset" ]
             , Html.button [ HE.onClick Clear ] [ Html.text "Clear" ]
