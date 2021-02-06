@@ -113,6 +113,7 @@ update msg model =
             , Cmd.none
             )
 
+        -- マス目をクリックしてcellを追加
         Add pos ->
             if model.start then
                 ( model, Cmd.none )
@@ -152,6 +153,10 @@ update msg model =
             )
 
 
+
+-- `cell`の周りのセルを生成
+
+
 createSurround : Cell -> Set Cell
 createSurround cell =
     let
@@ -173,6 +178,10 @@ createSurround cell =
         ]
 
 
+
+-- `cell`が次に生き残れるか
+
+
 isNextGen : Set Cell -> Cell -> Bool
 isNextGen livingCells cell =
     let
@@ -188,6 +197,10 @@ isNextGen livingCells cell =
 
         _ ->
             False
+
+
+
+-- `cell`の周りを数える
 
 
 countSurround : Cell -> Set Cell -> Int
