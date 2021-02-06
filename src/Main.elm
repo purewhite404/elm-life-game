@@ -151,7 +151,7 @@ update msg model =
                     )
 
         ReadSample sample ->
-            ( { model | cells = sample, initCells = sample }
+            ( { model | cells = sample, initCells = sample, generation = 0 }
             , Cmd.none
             )
 
