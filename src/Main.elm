@@ -33,8 +33,9 @@ type alias Model =
     , initCells : Set Cell
     , start : Bool
     , position : { x : Int, y : Int }
-    , countGen : Int
+    , generation : Int
     , invFrameSpeed : Float
+    , history : List { remove : Set Cell, add : Set Cell }
     }
 
 
@@ -44,8 +45,9 @@ init _ =
       , initCells = Set.empty
       , start = False
       , position = { x = 0, y = 0 }
-      , countGen = 0
+      , generation = 0
       , invFrameSpeed = 100
+      , history = []
       }
     , Cmd.none
     )
@@ -60,6 +62,7 @@ type Msg
     | Add ( Float, Float )
     | ReadSample (Set Cell)
     | ChangeFrameSpeed String
+    | Undo
 
 
 subscriptions : Model -> Sub Msg
@@ -88,7 +91,8 @@ update msg model =
             else
                 ( { model
                     | cells = nextCells
-                    , countGen = model.countGen + 1
+                    , generation = model.generation + 1
+                    , history = { remove = Set.diff model.cells nextCells, add = Set.diff nextCells model.cells } :: model.history
                   }
                 , Cmd.none
                 )
@@ -104,7 +108,7 @@ update msg model =
             )
 
         Reset ->
-            ( { model | cells = model.initCells, countGen = 0 }
+            ( { model | cells = model.initCells, generation = 0 }
             , Cmd.none
             )
 
@@ -113,7 +117,7 @@ update msg model =
                 | cells = Set.empty
                 , initCells = Set.empty
                 , start = False
-                , countGen = 0
+                , generation = 0
               }
             , Cmd.none
             )
@@ -153,6 +157,29 @@ update msg model =
 
         ChangeFrameSpeed invS ->
             ( { model | invFrameSpeed = Maybe.withDefault 100 <| String.toFloat invS }
+            , Cmd.none
+            )
+
+        Undo ->
+            let
+                ( head, tail ) =
+                    case model.history of
+                        [] ->
+                            ( { remove = Set.empty, add = Set.empty }, [] )
+
+                        x :: xs ->
+                            ( x, xs )
+            in
+            ( { model
+                | cells = Set.diff model.cells head.add |> Set.union head.remove
+                , generation =
+                    if model.generation == 0 then
+                        0
+
+                    else
+                        model.generation - 1
+                , history = tail
+              }
             , Cmd.none
             )
 
@@ -253,6 +280,7 @@ view model =
             , Html.button [ HE.onClick Reset ] [ Html.text "Reset" ]
             , Html.button [ HE.onClick Clear ] [ Html.text "Clear" ]
             , Html.button [ HE.onClick (Move (Time.millisToPosix 0)) ] [ Html.text "Move" ]
+            , Html.button [ HE.onClick Undo ] [ Html.text "Undo" ]
             , Html.select []
                 [ Html.option [ HE.onClick (ReadSample Set.empty) ] [ Html.text "Empty" ]
                 , Html.option [ HE.onClick (ReadSample Sample.gliderGun) ] [ Html.text "GliderGun" ]
@@ -270,7 +298,7 @@ view model =
                 , HE.onInput ChangeFrameSpeed
                 ]
                 []
-            , Html.div [] [ Html.text <| "generation: " ++ String.fromInt model.countGen ]
+            , Html.div [] [ Html.text <| "generation: " ++ String.fromInt model.generation ]
             , Html.div [] [ Html.text <| SC.fromSet (SC.fromTuple2 String.fromInt String.fromInt) model.cells ]
             ]
         ]
