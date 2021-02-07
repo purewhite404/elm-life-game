@@ -262,7 +262,7 @@ view : Model -> Html Msg
 view model =
     Html.div []
         [ Html.div [ Mouse.onClick (.offsetPos >> Add) ] [ viewCells model.cells ]
-        , Html.div [ HA.style "position" "fixed", HA.style "top" "2em", HA.style "left" "2em" ] (operations model)
+        , Html.div [ HA.style "position" "fixed", HA.style "bottom" "2em", HA.style "left" "2em" ] (operations model)
         ]
 
 
@@ -315,8 +315,7 @@ operations model =
         , HE.onInput ChangeFrameSpeed
         ]
         []
-    , Html.text <| "generation: " ++ String.fromInt model.generation
-    , Html.div [] [ Html.text <| Conv.fromSet (Conv.fromTuple2 String.fromInt String.fromInt) model.cells ]
+    , Html.div [] [ Html.text <| "generation: " ++ String.fromInt model.generation ]
     ]
 
 
