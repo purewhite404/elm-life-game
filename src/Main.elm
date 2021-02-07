@@ -287,6 +287,7 @@ operations model =
         , Html.option [ HE.onClick (ReadSample Sample.makeSpaceship) ] [ Html.text "Make Spaceship" ]
         , Html.option [ HE.onClick (ReadSample Sample.ship60P5H2V0) ] [ Html.text "60P5H2V0" ]
         , Html.option [ HE.onClick (ReadSample Sample.shuttle) ] [ Html.text "Shuttle" ]
+        , Html.option [ HE.onClick (ReadSample Sample.acorn) ] [ Html.text "Acorn" ]
         ]
     , Html.input
         [ HA.type_ "number"
