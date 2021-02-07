@@ -229,30 +229,15 @@ countSurround cell livingCells =
 view : Model -> Html Msg
 view model =
     Html.div []
-        [ Html.div [] (operations model)
-        , Html.div [ Mouse.onClick (.offsetPos >> Add) ] [ viewCells model.cells ]
-        , Html.div [] [ Html.text <| "generation: " ++ String.fromInt model.countGen ]
-        , Html.div [] [ Html.text <| Conv.fromSet (Conv.fromTuple2 String.fromInt String.fromInt) model.cells ]
+        [ Html.div [ Mouse.onClick (.offsetPos >> Add) ] [ viewCells model.cells ]
+        , Html.div [ HA.style "position" "fixed", HA.style "top" "2em", HA.style "left" "2em" ] (operations model)
         ]
 
 
 viewCells : Set Cell -> Html msg
 viewCells cells =
-    let
-        width =
-            191
-
-        height =
-            83
-
-        realW =
-            String.fromInt (width * 10)
-
-        realH =
-            String.fromInt (height * 10)
-    in
     Svg.svg
-        [ SA.viewBox <| "0 0 " ++ realW ++ " " ++ realH
+        [ SA.style "position: absolute"
         , SA.width "100%"
         , SA.height "100%"
         ]
@@ -297,6 +282,8 @@ operations model =
         , HE.onInput ChangeFrameSpeed
         ]
         []
+    , Html.text <| "generation: " ++ String.fromInt model.countGen
+    , Html.div [] [ Html.text <| Conv.fromSet (Conv.fromTuple2 String.fromInt String.fromInt) model.cells ]
     ]
 
 
