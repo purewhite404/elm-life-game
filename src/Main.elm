@@ -15,6 +15,7 @@ import Svg.Attributes as SA
 import Time
 
 
+main : Program () Model Msg
 main =
     Browser.element
         { init = init
@@ -313,7 +314,7 @@ makeSvgCell cell =
 
 showCells : List (Svg msg) -> List (Svg msg)
 showCells rects =
-    Svg.defs []
+    [ Svg.defs []
         [ -- gridを描く
           Svg.pattern
             [ SA.id "patterngrid"
@@ -339,4 +340,5 @@ showCells rects =
         , Svg.symbol [ SA.id "cells" ]
             (Svg.use [ SA.xlinkHref "#grid" ] [] :: rects)
         ]
-        :: [ Svg.use [ SA.xlinkHref "#cells" ] [] ]
+    , Svg.use [ SA.xlinkHref "#cells" ] []
+    ]
