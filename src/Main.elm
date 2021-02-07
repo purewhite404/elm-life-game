@@ -296,6 +296,7 @@ operations model =
     , Html.button [ HE.onClick Reset ] [ Html.text "Reset" ]
     , Html.button [ HE.onClick Clear ] [ Html.text "Clear" ]
     , Html.button [ HE.onClick (Move (Time.millisToPosix 0)) ] [ Html.text "Move" ]
+    , Html.button [ HE.onClick Undo ] [ Html.text "Undo" ]
     , Html.select []
         [ Html.option [ HE.onClick (ReadSample Set.empty) ] [ Html.text "Empty" ]
         , Html.option [ HE.onClick (ReadSample Sample.gliderGun) ] [ Html.text "GliderGun" ]
