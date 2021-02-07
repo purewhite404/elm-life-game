@@ -9,9 +9,9 @@ import List.Extra
 import Sample
 import Set exposing (Set)
 import Set.Extra
-import String.Conversions as SC
-import Svg exposing (Svg, svg)
-import Svg.Attributes as SA exposing (viewBox)
+import String.Conversions as Conv
+import Svg exposing (Svg)
+import Svg.Attributes as SA
 import Time
 
 
@@ -228,82 +228,78 @@ countSurround cell livingCells =
 view : Model -> Html Msg
 view model =
     Html.div []
-        [ Html.div [ Mouse.onClick (.clientPos >> Add) ]
-            [ let
-                width =
-                    79
-
-                height =
-                    79
-
-                allCells =
-                    List.Extra.lift2 Tuple.pair (List.range 0 width) (List.range 0 height)
-              in
-              svg
-                [ viewBox ("0 0 " ++ String.fromInt (width * 10) ++ " " ++ String.fromInt (height * 10))
-                , SA.width <| String.fromInt (width * 10)
-                , SA.height <| String.fromInt (height * 10)
-                ]
-                (List.map showGrid allCells ++ List.map showCell (Set.toList model.cells))
-            ]
-        , Html.div []
-            [ Html.button
-                [ HE.onClick <|
-                    if model.start then
-                        Stop
-
-                    else
-                        Start
-                ]
-                [ Html.text <|
-                    if model.start then
-                        "Stop"
-
-                    else
-                        "Run"
-                ]
-            , Html.button [ HE.onClick Reset ] [ Html.text "Reset" ]
-            , Html.button [ HE.onClick Clear ] [ Html.text "Clear" ]
-            , Html.button [ HE.onClick (Move (Time.millisToPosix 0)) ] [ Html.text "Move" ]
-            , Html.select []
-                [ Html.option [ HE.onClick (ReadSample Set.empty) ] [ Html.text "Empty" ]
-                , Html.option [ HE.onClick (ReadSample Sample.gliderGun) ] [ Html.text "GliderGun" ]
-                , Html.option [ HE.onClick (ReadSample Sample.galaxy) ] [ Html.text "Galaxy" ]
-                , Html.option [ HE.onClick (ReadSample Sample.glider) ] [ Html.text "Glider" ]
-                , Html.option [ HE.onClick (ReadSample Sample.spaceships) ] [ Html.text "Spaceships" ]
-                , Html.option [ HE.onClick (ReadSample Sample.makeSpaceship) ] [ Html.text "Make Spaceship" ]
-                , Html.option [ HE.onClick (ReadSample Sample.ship60P5H2V0) ] [ Html.text "60P5H2V0" ]
-                , Html.option [ HE.onClick (ReadSample Sample.shuttle) ] [ Html.text "Shuttle" ]
-                ]
-            , Html.input
-                [ HA.type_ "number"
-                , HA.size 1
-                , HA.value <| String.fromFloat model.invFrameSpeed
-                , HE.onInput ChangeFrameSpeed
-                ]
-                []
-            , Html.div [] [ Html.text <| "generation: " ++ String.fromInt model.countGen ]
-            , Html.div [] [ Html.text <| SC.fromSet (SC.fromTuple2 String.fromInt String.fromInt) model.cells ]
-            ]
+        [ Html.div [] (operations model)
+        , Html.div [ Mouse.onClick (.offsetPos >> Add) ] [ viewCells model.cells ]
+        , Html.div [] [ Html.text <| "generation: " ++ String.fromInt model.countGen ]
+        , Html.div [] [ Html.text <| Conv.fromSet (Conv.fromTuple2 String.fromInt String.fromInt) model.cells ]
         ]
 
 
-showGrid : Cell -> Svg msg
-showGrid cell =
-    Svg.rect
-        [ SA.x <| String.fromInt <| 10 * Tuple.first cell
-        , SA.y <| String.fromInt <| 10 * Tuple.second cell
-        , SA.width "10"
-        , SA.height "10"
-        , SA.fill "white"
-        , SA.stroke "gray"
-        , SA.strokeWidth "0.4"
+viewCells : Set Cell -> Html msg
+viewCells cells =
+    let
+        width =
+            191
+
+        height =
+            83
+
+        realW =
+            String.fromInt (width * 10)
+
+        realH =
+            String.fromInt (height * 10)
+    in
+    Svg.svg
+        [ SA.viewBox <| "0 0 " ++ realW ++ " " ++ realH
+        , SA.width "100%"
+        , SA.height "100%"
+        ]
+        (showCells <| List.map makeSvgCell (Set.toList cells))
+
+
+operations : Model -> List (Html Msg)
+operations model =
+    [ Html.button
+        [ HE.onClick <|
+            if model.start then
+                Stop
+
+            else
+                Start
+        ]
+        [ Html.text <|
+            if model.start then
+                "Stop"
+
+            else
+                "Run"
+        ]
+    , Html.button [ HE.onClick Reset ] [ Html.text "Reset" ]
+    , Html.button [ HE.onClick Clear ] [ Html.text "Clear" ]
+    , Html.button [ HE.onClick (Move (Time.millisToPosix 0)) ] [ Html.text "Move" ]
+    , Html.select []
+        [ Html.option [ HE.onClick (ReadSample Set.empty) ] [ Html.text "Empty" ]
+        , Html.option [ HE.onClick (ReadSample Sample.gliderGun) ] [ Html.text "GliderGun" ]
+        , Html.option [ HE.onClick (ReadSample Sample.galaxy) ] [ Html.text "Galaxy" ]
+        , Html.option [ HE.onClick (ReadSample Sample.glider) ] [ Html.text "Glider" ]
+        , Html.option [ HE.onClick (ReadSample Sample.spaceships) ] [ Html.text "Spaceships" ]
+        , Html.option [ HE.onClick (ReadSample Sample.makeSpaceship) ] [ Html.text "Make Spaceship" ]
+        , Html.option [ HE.onClick (ReadSample Sample.ship60P5H2V0) ] [ Html.text "60P5H2V0" ]
+        , Html.option [ HE.onClick (ReadSample Sample.shuttle) ] [ Html.text "Shuttle" ]
+        ]
+    , Html.input
+        [ HA.type_ "number"
+        , HA.size 1
+        , HA.value <| String.fromFloat model.invFrameSpeed
+        , HE.onInput ChangeFrameSpeed
         ]
         []
+    ]
 
 
-showCell : Cell -> Svg msg
-showCell cell =
+makeSvgCell : Cell -> Svg msg
+makeSvgCell cell =
     Svg.rect
         [ SA.x <| String.fromInt <| 10 * Tuple.first cell
         , SA.y <| String.fromInt <| 10 * Tuple.second cell
@@ -312,3 +308,34 @@ showCell cell =
         , SA.fill "black"
         ]
         []
+
+
+showCells : List (Svg msg) -> List (Svg msg)
+showCells rects =
+    Svg.defs []
+        [ -- gridを描く
+          Svg.pattern
+            [ SA.id "patterngrid"
+            , SA.width "10"
+            , SA.height "10"
+            , SA.patternUnits "userSpaceOnUse"
+            ]
+            [ Svg.path
+                [ SA.d "M 0 0 H 10 V 10"
+                , SA.fill "none"
+                , SA.stroke "gray"
+                , SA.strokeWidth "0.5"
+                ]
+                []
+            ]
+        , Svg.rect
+            [ SA.id "grid"
+            , SA.width "100%"
+            , SA.height "100%"
+            , SA.fill "url(#patterngrid)"
+            ]
+            []
+        , Svg.symbol [ SA.id "cells" ]
+            (Svg.use [ SA.xlinkHref "#grid" ] [] :: rects)
+        ]
+        :: [ Svg.use [ SA.xlinkHref "#cells" ] [] ]
