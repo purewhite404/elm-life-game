@@ -314,7 +314,7 @@ operations model =
         , HE.onInput ChangeFrameSpeed
         ]
         []
-    , Html.text <| "generation: " ++ String.fromInt model.countGen
+    , Html.text <| "generation: " ++ String.fromInt model.generation
     , Html.div [] [ Html.text <| Conv.fromSet (Conv.fromTuple2 String.fromInt String.fromInt) model.cells ]
     ]
 
